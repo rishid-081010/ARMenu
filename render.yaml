@@ -1,0 +1,6 @@
+services:
+  - type: web
+    name: ar-menu
+    env: static
+    buildCommand: ""
+    staticPublishPath: "./"
