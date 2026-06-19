@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Limetree - AR Table View</title>
+    <!-- A-Frame and MindAR Libraries -->
+    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Lora:ital,wght@0,500;1,400&family=Montserrat:wght@500;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-color: #fdf8ef;
+            --text-brown: #8a3a23;
+            --link-blue: #0b5fb0;
+            --tape-bg: #e4d5bc;
+            --torn-paper: #d8aa6b;
+        }
+
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Lora', serif;
+            background-color: #000;
+        }
+
+        /* UI Overlay Container */
+        .ui-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1000;
+            pointer-events: none; /* Let clicks pass through to A-Frame unless on buttons */
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-sizing: border-box;
+            padding: 20px;
+        }
+
+        .ui-element {
+            pointer-events: auto; /* Enable clicks for UI items */
+        }
+
+        /* Top Bar */
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+
+        .back-btn {
+            background-color: rgba(253, 248, 239, 0.9);
+            border: 2px solid var(--text-brown);
+            color: var(--text-brown);
+            padding: 8px 16px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+            border-radius: 20px;
+            cursor: pointer;
+            text-decoration: none;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .back-btn:hover {
+            background-color: var(--text-brown);
+            color: var(--bg-color);
+            transform: translateY(-2px);
+        }
+
+        .brand-title {
+            font-family: 'Dancing Script', cursive;
+            font-size: 2.2rem;
+            color: #fff;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+            margin: 0;
+        }
+
+        /* Center Instruction Overlay */
+        .instruction-toast {
+            align-self: center;
+            background-color: rgba(138, 58, 35, 0.85);
+            color: var(--bg-color);
+            padding: 12px 24px;
+            border-radius: 30px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 500;
+            text-align: center;
+            max-width: 80%;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+            animation: pulse 2s infinite ease-in-out;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.03); }
+            100% { transform: scale(1); }
+        }
+
+        /* Bottom Control Panel */
+        .bottom-panel {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            gap: 10px;
+        }
+
+        .control-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .circle-btn {
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            background-color: rgba(253, 248, 239, 0.95);
+            border: 2px solid var(--text-brown);
+            color: var(--text-brown);
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            transition: all 0.2s ease;
+        }
+
+        .circle-btn:hover {
+            background-color: var(--text-brown);
+            color: var(--bg-color);
+            transform: scale(1.08);
+        }
+
+        .circle-btn.large {
+            width: auto;
+            border-radius: 23px;
+            padding: 0 20px;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+        }
+
+        /* Custom Loading Screen Overlay */
+        #custom-loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--bg-color);
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.5s ease;
+        }
+
+        #custom-loading.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .loader-brand {
+            font-family: 'Dancing Script', cursive;
+            font-size: 4rem;
+            color: var(--text-brown);
+            margin-bottom: 20px;
+        }
+
+        .loader-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid var(--tape-bg);
+            border-top: 5px solid var(--text-brown);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loader-text {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.95rem;
+            color: var(--text-brown);
+            font-weight: 500;
+            letter-spacing: 1px;
+        }
+
+        /* Marker Help Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.85);
+            z-index: 3000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .modal-box {
+            background-color: var(--bg-color);
+            padding: 30px;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 450px;
+            box-sizing: border-box;
+            text-align: center;
+            border: 3px solid var(--text-brown);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            position: relative;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 2rem;
+            color: var(--text-brown);
+            cursor: pointer;
+            border: none;
+            background: none;
+        }
+
+        .modal-title {
+            font-family: 'Dancing Script', cursive;
+            font-size: 2.5rem;
+            color: var(--text-brown);
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+
+        .modal-desc {
+            font-family: 'Lora', serif;
+            font-size: 0.95rem;
+            color: var(--text-brown);
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+
+        .marker-preview {
+            width: 100%;
+            max-width: 250px;
+            border: 2px solid var(--text-brown);
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            margin-bottom: 20px;
+        }
+
+        .modal-btn {
+            background-color: var(--text-brown);
+            color: var(--bg-color);
+            border: none;
+            padding: 10px 24px;
+            border-radius: 20px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 0.85rem;
+            cursor: pointer;
+            letter-spacing: 1px;
+            transition: background-color 0.2s;
+        }
+
+        .modal-btn:hover {
+            background-color: #9d5a45;
+        }
+
+        /* Hide the default MindAR scanning overlay */
+        .mindar-ui-scanning {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Custom Beautiful Loading Screen -->
+    <div id="custom-loading">
+        <div class="loader-brand">Limetree</div>
+        <div class="loader-spinner"></div>
+        <div id="loader-status" class="loader-text">PREPARING YOUR TABLE...</div>
+    </div>
+
+    <!-- UI Overlay -->
+    <div class="ui-container">
+        <!-- Top Bar -->
+        <div class="top-bar ui-element">
+            <a href="index.html" class="back-btn">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                    <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+                MENU
+            </a>
+            <h2 class="brand-title">Limetree AR</h2>
+        </div>
+
+        <!-- Dynamic Instruction Toast -->
+        <div class="instruction-toast ui-element" id="instruction-toast">
+            Scan the Limetree Card to place your dish
+        </div>
+
+        <!-- Bottom Controls -->
+        <div class="bottom-panel ui-element">
+            <!-- Target Helper Button -->
+            <button class="circle-btn large" onclick="openMarkerModal()">Show Target Card</button>
+            
+            <!-- Rotate Buttons -->
+            <div class="control-group">
+                <button class="circle-btn" id="btn-rotate-v" style="font-size:1.2rem;" aria-label="Rotate Vertically">⇅</button>
+                <button class="circle-btn" id="btn-rotate-h" style="font-size:1.2rem;" aria-label="Rotate Horizontally">⇄</button>
+                <button class="circle-btn" id="btn-rotate-d" style="font-size:1.2rem;" aria-label="Rotate Depth">⤿</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Marker Help Modal -->
+    <div class="modal-overlay" id="markerModal" onclick="closeMarkerModalOnOverlay(event)">
+        <div class="modal-box">
+            <button class="modal-close" onclick="closeMarkerModal()">&times;</button>
+            <h3 class="modal-title">AR Target Card</h3>
+            <p class="modal-desc">
+                Point your camera at this image to display the 3D model. You can view it on another screen (like your computer) or print it out.
+            </p>
+            <img class="marker-preview" src="atomic-habits-cover.png" alt="Target Marker Image">
+            <div>
+                <a href="atomic-habits-cover.png" target="_blank">
+                    <button class="modal-btn">Open Full Image</button>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- MindAR & A-Frame Scene -->
+    <a-scene 
+        id="ar-scene"
+        mindar-image="imageTargetSrc: atomic-habits-cover.mind; uiLoading: no; uiError: no; uiScanning: no; filterMinCF: 0.0001; filterBeta: 0.001; missTolerance: 10;" 
+        color-space="sRGB" 
+        renderer="colorManagement: true, physicallyCorrectLights: true" 
+        vr-mode-ui="enabled: false" 
+        device-orientation-permission-ui="enabled: false">
+        
+        <a-light type="ambient" color="#ffffff" intensity="1.5"></a-light>
+        <a-light type="directional" color="#ffffff" intensity="1" position="0 5 2"></a-light>
+        
+        <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+        
+        <a-entity id="ar-target" mindar-image-target="targetIndex: 0">
+            <!-- Base container handles the 90-deg standing up rotation and floating offset -->
+            <a-entity id="model-orientation-container">
+                <!-- GLTF Model will load dynamically here and receive interactive rotations -->
+                <a-gltf-model 
+                    id="ar-model" 
+                    scale="1 1 1"
+                    rotation="0 0 0">
+                </a-gltf-model>
+            </a-entity>
+        </a-entity>
+    </a-scene>
+
+    <script>
+        // Parse the URL search parameters to find out which dish model to display
+        const urlParams = new URLSearchParams(window.location.search);
+        const modelName = urlParams.get('model') || 'burger';
+        
+        const arModel = document.getElementById('ar-model');
+        const instructionToast = document.getElementById('instruction-toast');
+        
+        // Initialize Supabase Client
+        const SUPABASE_URL = 'https://mbaqukiraerwhpngzwyz.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1iYXF1a2lyYWVyd2hwbmd6d3l6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4MzY1NTksImV4cCI6MjA5NzQxMjU1OX0.N8Hkytw3HpMxRWBU7TPzZe4nR72bv-2qwBg1PfrtfrU';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // Simple configuration for UI elements
+        const dishConfigs = {
+            burger: {
+                uiName: 'Truffle Royale Burger',
+                rotationOffset: '90 0 0',
+                positionOffset: '0 0 0.4'
+            },
+            pasta: {
+                uiName: 'Lobster Linguine',
+                rotationOffset: '90 0 0',
+                positionOffset: '0 0 0.4'
+            },
+            cocktail: {
+                uiName: 'Smoked Citrus Negroni',
+                rotationOffset: '90 0 0',
+                positionOffset: '0 0 0.4'
+            }
+        };
+
+        const currentConfig = dishConfigs[modelName] || dishConfigs.burger;
+        
+        // Interactive rotations for the model itself (starts at 0 0 0)
+        let rotX = 0;
+        let rotY = 0;
+        let rotZ = 0;
+
+        // Apply the 90-deg standing rotation and Z-offset to the parent container
+        const orientationContainer = document.getElementById('model-orientation-container');
+        orientationContainer.setAttribute('rotation', currentConfig.rotationOffset);
+        orientationContainer.setAttribute('position', currentConfig.positionOffset);
+
+        // Model's own rotation starts at 0 0 0, independent of the container
+        arModel.setAttribute('rotation', '0 0 0');
+        
+        // Update instruction toast with dish name
+        instructionToast.innerHTML = `Scan the Limetree Card to place your <strong style="color: #ffe6bd">${currentConfig.uiName}</strong>`;
+
+        // Async function to load model from Supabase
+        async function loadARModel() {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('ar_assets')
+                    .select('model_url, scale')
+                    .eq('item_id', modelName)
+                    .single();
+                
+                if (error) throw error;
+                if (data) {
+                    arModel.setAttribute('gltf-model', data.model_url);
+                    arModel.setAttribute('scale', data.scale);
+                }
+            } catch (err) {
+                console.error("Error loading model config from Supabase:", err);
+                instructionToast.innerHTML = `<span style="color: #ff9999;">Error fetching AR data.</span>`;
+            }
+        }
+
+        loadARModel();
+
+        let isModelLoaded = false;
+        let isTargetFound = false;
+
+        // Handle MindAR loading events
+        const sceneEl = document.getElementById('ar-scene');
+        const loadingScreen = document.getElementById('custom-loading');
+        const loaderStatus = document.getElementById('loader-status');
+
+        sceneEl.addEventListener("arReady", (event) => {
+            loadingScreen.classList.add('hidden');
+        });
+
+        sceneEl.addEventListener("arError", (event) => {
+            loaderStatus.textContent = "CAMERA ERROR. PLEASE RELOAD.";
+            loaderStatus.style.color = "#d9534f";
+        });
+
+        // Track when the 20MB 3D model finishes downloading and parsing
+        arModel.addEventListener("model-loaded", () => {
+            isModelLoaded = true;
+            if (isTargetFound) {
+                showSuccessToast();
+            }
+        });
+
+        arModel.addEventListener("model-error", () => {
+            instructionToast.innerHTML = `<span style="color: #ff9999;">Error downloading 3D model.</span>`;
+            instructionToast.style.backgroundColor = "rgba(150, 0, 0, 0.9)";
+        });
+
+        function showSuccessToast() {
+            instructionToast.innerHTML = `<span style="color: #a8ffb2; font-weight: bold;">✓ ${currentConfig.uiName} Placed!</span>`;
+            instructionToast.style.backgroundColor = "rgba(20, 90, 40, 0.95)";
+        }
+
+        function showDownloadingToast() {
+            instructionToast.innerHTML = `<span style="color: #ffea00; font-weight: bold;">Downloading 3D Model (Please hold still)...</span>`;
+            instructionToast.style.backgroundColor = "rgba(160, 110, 0, 0.95)";
+        }
+
+        // Track target found/lost to update instructions
+        const arTarget = document.getElementById('ar-target');
+        arTarget.addEventListener("targetFound", (event) => {
+            isTargetFound = true;
+            if (isModelLoaded) {
+                showSuccessToast();
+            } else {
+                showDownloadingToast();
+            }
+        });
+
+        arTarget.addEventListener("targetLost", (event) => {
+            isTargetFound = false;
+            instructionToast.innerHTML = `Scan the Limetree Card to place your <strong style="color: #ffe6bd">${currentConfig.uiName}</strong>`;
+            instructionToast.style.backgroundColor = "rgba(138, 58, 35, 0.85)";
+        });
+
+        // Rotation Controls - Continuous on hold
+        let rotInterval = null;
+        let activeRotType = null;
+        
+        const startRotation = (type) => {
+            if (rotInterval) clearInterval(rotInterval);
+            activeRotType = type;
+            
+            rotInterval = setInterval(() => {
+                if (activeRotType === 'h') {
+                    rotY += 3; // Rotate 3 degrees per frame (~180 deg/sec)
+                } else if (activeRotType === 'v') {
+                    rotX += 3;
+                } else if (activeRotType === 'd') {
+                    rotZ += 3;
+                }
+                arModel.setAttribute('rotation', `${rotX} ${rotY} ${rotZ}`);
+            }, 16); // Roughly 60 FPS
+        };
+
+        const stopRotation = () => {
+            if (rotInterval) {
+                clearInterval(rotInterval);
+                rotInterval = null;
+            }
+            activeRotType = null;
+        };
+
+        const btnRotH = document.getElementById('btn-rotate-h');
+        const btnRotV = document.getElementById('btn-rotate-v');
+        const btnRotD = document.getElementById('btn-rotate-d');
+
+        // Add event listeners for both mouse and touch to handle holding
+        ['mousedown', 'touchstart'].forEach(evt => {
+            btnRotH.addEventListener(evt, (e) => { e.preventDefault(); startRotation('h'); });
+            btnRotV.addEventListener(evt, (e) => { e.preventDefault(); startRotation('v'); });
+            btnRotD.addEventListener(evt, (e) => { e.preventDefault(); startRotation('d'); });
+        });
+
+        ['mouseup', 'mouseleave', 'touchend', 'touchcancel'].forEach(evt => {
+            btnRotH.addEventListener(evt, stopRotation);
+            btnRotV.addEventListener(evt, stopRotation);
+            btnRotD.addEventListener(evt, stopRotation);
+        });
+
+        // Marker Modal Controls
+        const modal = document.getElementById('markerModal');
+
+        function openMarkerModal() {
+            modal.style.display = 'flex';
+            setTimeout(() => {
+                modal.classList.add('active');
+            }, 10);
+        }
+
+        function closeMarkerModal() {
+            modal.classList.remove('active');
+            setTimeout(() => {
+                modal.style.display = 'none';
+            }, 300);
+        }
+
+        function closeMarkerModalOnOverlay(event) {
+            if (event.target === modal) {
+                closeMarkerModal();
+            }
+        }
+    </script>
+</body>
+</html>
