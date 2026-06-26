@@ -619,7 +619,11 @@
             if (error) throw error;
             if (data) {
                 viewer.src = data.model_url;
-                viewer.setAttribute('scale', data.scale);
+                let finalScale = data.scale;
+                if (dishType === 'pasta') {
+                    finalScale = '0.3 0.3 0.3'; // Match burger scale
+                }
+                viewer.setAttribute('scale', finalScale);
             }
         } catch (err) {
             console.error("Error loading model config from Supabase:", err);
