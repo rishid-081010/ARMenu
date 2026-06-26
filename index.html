@@ -11,11 +11,9 @@
 <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Lora:ital,wght@0,500;1,400&family=Montserrat:wght@500&display=swap" rel="stylesheet">
 <style>
     :root {
-        --bg-color: #fdf8ef;
-        --text-brown: #8a3a23;
-        --link-blue: #0b5fb0;
-        --tape-bg: #e4d5bc;
-        --torn-paper: #d8aa6b;
+        --bg-color: #FAF6F0; /* Cream background from image */
+        --gold: #bca37f;
+        --text-dark: #1a1a1a;
     }
 
     body, html {
@@ -23,331 +21,252 @@
         padding: 0;
         background-color: var(--bg-color);
         font-family: 'Lora', serif;
-        color: var(--text-brown);
+        color: var(--text-dark);
         overflow-x: hidden;
     }
 
-    /* Torn paper effect top & bottom */
-    .torn-top, .torn-bottom {
-        width: 100%;
-        height: 60px;
-        background-color: var(--torn-paper);
-        position: relative;
-        z-index: 10;
-    }
-    
-    .torn-top {
-        clip-path: polygon(0% 0%, 100% 0%, 100% 80%, 95% 100%, 90% 75%, 85% 95%, 80% 80%, 75% 100%, 70% 70%, 65% 90%, 60% 80%, 55% 100%, 50% 85%, 45% 100%, 40% 70%, 35% 90%, 30% 75%, 25% 100%, 20% 80%, 15% 95%, 10% 70%, 5% 100%, 0% 80%);
-    }
-
-    .torn-bottom {
-        clip-path: polygon(0% 20%, 5% 0%, 10% 30%, 15% 5%, 20% 20%, 25% 0%, 30% 25%, 35% 10%, 40% 30%, 45% 0%, 50% 15%, 55% 0%, 60% 20%, 65% 10%, 70% 30%, 75% 0%, 80% 20%, 85% 5%, 90% 25%, 95% 0%, 100% 20%, 100% 100%, 0% 100%);
-    }
-
-    .container {
-        display: flex;
-        max-width: 900px;
-        margin: 0 auto;
-        padding: 40px 20px;
-        position: relative;
-    }
-
-    .left-col {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        align-items: center;
-        padding-right: 40px;
-    }
-
-    .right-col {
-        flex: 1.5;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        padding-top: 20px;
-    }
-
-    .cocktail-img {
-        width: 100%;
-        max-width: 250px;
-        filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.1));
-        margin-bottom: 40px;
-        border-radius: 16px;
-    }
-
-    .tag {
-        background-color: var(--tape-bg);
-        padding: 8px 30px;
-        font-family: 'Dancing Script', cursive;
-        font-size: 1.5rem;
-        transform: rotate(-2deg);
-        box-shadow: 1px 2px 4px rgba(0,0,0,0.1);
-        margin-bottom: 30px;
-        position: relative;
-    }
-    
-    .tag::before, .tag::after {
-        content: '';
+    /* Vintage Corners */
+    .vintage-corner {
         position: absolute;
-        top: 0; bottom: 0;
-        width: 10px;
-        background: rgba(255,255,255,0.3);
+        width: 250px;
+        height: 250px;
+        background-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><path d="M10,10 L150,10 L150,14 L14,14 L14,150 L10,150 Z" fill="%23bca37f"/><path d="M25,25 Q60,25 60,60 Q60,25 95,25" fill="none" stroke="%23bca37f" stroke-width="2"/><path d="M25,25 Q25,60 60,60 Q25,60 25,95" fill="none" stroke="%23bca37f" stroke-width="2"/><circle cx="35" cy="35" r="4" fill="%23bca37f"/></svg>');
+        background-repeat: no-repeat;
+        z-index: 0;
+        opacity: 0.8;
     }
-    .tag::before { left: 5px; }
-    .tag::after { right: 5px; }
+    .top-left { top: 0; left: 0; }
+    .top-right { top: 0; right: 0; transform: scaleX(-1); }
 
-    .title {
-        font-family: 'Dancing Script', cursive;
-        font-size: 4.5rem;
-        line-height: 1.1;
-        text-align: center;
-        margin: 0 0 40px 0;
-        color: #93381a;
-    }
-
-    .menu-list {
-        width: 100%;
-        max-width: 450px;
-    }
-
-    .menu-item {
-        margin-bottom: 35px;
-    }
-
-    .view-3d {
-        display: block;
-        font-family: 'Montserrat', sans-serif;
-        color: var(--link-blue);
-        font-size: 0.85rem;
-        font-weight: 600;
-        text-decoration: none;
-        letter-spacing: 1px;
-        margin-bottom: 5px;
-        text-align: center;
-        cursor: pointer;
-        transition: opacity 0.2s;
-    }
-
-    .view-3d:hover {
-        opacity: 0.7;
-    }
-
-    .action-links {
+    /* Header */
+    .header-container {
         display: flex;
         justify-content: center;
         align-items: center;
-        gap: 15px;
+        margin-top: 100px;
+        gap: 20px;
+        position: relative;
+        z-index: 1;
+    }
+    .main-title {
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 900;
+        font-size: 4rem;
+        color: var(--text-dark);
+        margin: 0;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+    }
+    .flourish {
+        width: 80px;
+        height: 30px;
+        background-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 100 40" xmlns="http://www.w3.org/2000/svg"><path d="M10,20 Q30,5 50,20 T90,20" fill="none" stroke="%23000" stroke-width="2"/><circle cx="50" cy="20" r="3" fill="%23000"/></svg>');
+        background-repeat: no-repeat;
+        background-position: center;
+    }
+    .flourish.right { transform: scaleX(-1); }
+
+    /* Menu List */
+    .menu-list {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        max-width: 600px;
+        margin: 60px auto;
+        position: relative;
+        z-index: 1;
+        padding: 0 20px;
+    }
+    .menu-item {
+        text-align: center;
+        margin-bottom: 60px;
+    }
+    .item-name {
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 800;
+        font-size: 1.8rem;
         margin-bottom: 5px;
+        color: var(--text-dark);
+        letter-spacing: 1px;
+    }
+    .item-price {
+        font-family: 'Lora', serif;
+        font-size: 1.4rem;
+        color: var(--gold);
+        margin-bottom: 15px;
+        font-style: italic;
+    }
+    .item-desc {
+        font-size: 1rem;
+        color: #555;
+        line-height: 1.6;
+        margin-bottom: 20px;
+        padding: 0 20px;
+    }
+    
+    .action-links {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
     }
 
-    .view-3d {
-        margin-bottom: 0; /* Override previous margin since flex container handles it */
+    .view-3d-btn {
+        background-color: transparent;
+        border: 2px solid var(--text-dark);
+        color: var(--text-dark);
+        padding: 12px 36px;
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 700;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        cursor: pointer;
+        transition: all 0.3s;
+        border-radius: 4px;
+        text-decoration: none;
+    }
+    .view-3d-btn:hover {
+        background-color: var(--text-dark);
+        color: var(--bg-color);
     }
 
     .view-fallback {
         font-family: 'Montserrat', sans-serif;
-        color: #8a3a23;
-        font-size: 0.7rem;
-        font-weight: 600;
+        color: #888;
+        font-size: 0.75rem;
         text-decoration: underline;
         cursor: pointer;
-        transition: opacity 0.2s;
+        transition: color 0.2s;
     }
-
     .view-fallback:hover {
-        opacity: 0.7;
+        color: var(--text-dark);
     }
-
-    .item-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: baseline;
-        margin-bottom: 8px;
-    }
-
-    .item-name {
-        font-family: 'Lora', serif;
-        font-size: 1.4rem;
-        font-weight: 500;
-        margin: 0;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-    }
-
-    .item-price {
-        font-size: 1.4rem;
-        font-weight: 500;
-    }
-
-    .item-desc {
-        font-style: italic;
-        font-size: 0.95rem;
-        margin: 0;
-        line-height: 1.4;
-        color: #9d5a45;
-    }
-
-    /* Modal Styles */
-    .modal {
-        display: none;
+    
+    /* Intro Overlay Styles */
+    .intro-overlay {
         position: fixed;
-        z-index: 100;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0,0,0,0.8);
-        opacity: 0;
-        transition: opacity 0.3s ease;
-    }
-
-    .modal.active {
+        top: 0; left: 0; width: 100%; height: 100%;
+        background-color: var(--bg-color);
+        z-index: 1000;
         display: flex;
-        opacity: 1;
         justify-content: center;
         align-items: center;
+        transition: opacity 0.4s ease;
     }
-
-    .modal-content {
-        position: relative;
+    .intro-content {
+        text-align: center;
+        padding: 40px;
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        max-width: 400px;
         width: 90%;
-        height: 80%;
-        max-width: 800px;
-        background: #fff;
-        border-radius: 12px;
-        overflow: hidden;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        border: 2px solid var(--gold);
     }
-
-    model-viewer {
-        width: 100%;
-        height: 100%;
-        background-color: #f4f4f4;
+    .intro-title {
+        font-family: 'Dancing Script', cursive;
+        font-size: 3rem;
+        color: var(--text-dark);
+        margin: 0 0 10px 0;
     }
-
-    .close-btn {
-        position: absolute;
-        top: 15px;
-        right: 20px;
-        font-size: 30px;
-        color: #333;
-        background: #fff;
-        border-radius: 50%;
-        width: 40px;
-        height: 40px;
-        border: none;
-        cursor: pointer;
-        z-index: 10;
-        padding: 0;
+    .intro-subtitle {
+        font-family: 'Lora', serif;
+        color: #555;
+        margin-bottom: 30px;
+        font-size: 1.1rem;
+    }
+    .mode-btn-container {
         display: flex;
-        justify-content: center;
-        align-items: center;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        flex-direction: column;
+        gap: 15px;
     }
-
-    #custom-ar-button {
-        background-image: url(https://modelviewer.dev/shared-assets/icons/ic_view_in_ar_new_googblue_48dp.png);
-        background-repeat: no-repeat;
-        background-size: 20px 20px;
-        background-position: 12px 50%;
-        background-color: #fff;
-        position: absolute;
-        left: 50%;
-        transform: translateX(-50%);
-        white-space: nowrap;
-        bottom: 32px;
-        padding: 0px 16px 0px 40px;
+    .mode-btn {
         font-family: 'Montserrat', sans-serif;
-        font-size: 14px;
         font-weight: 600;
-        color: #4285f4;
-        height: 36px;
-        line-height: 36px;
-        border-radius: 18px;
-        border: 1px solid #DADCE0;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+        padding: 15px 20px;
+        border-radius: 30px;
         cursor: pointer;
-        z-index: 10;
-        transition: background-color 0.2s, transform 0.2s;
+        border: 2px solid var(--text-dark);
+        background: transparent;
+        color: var(--text-dark);
+        font-size: 1rem;
+        transition: all 0.2s;
     }
-    #custom-ar-button:hover {
-        background-color: #f1f3f4;
-        transform: translateX(-50%) scale(1.05);
+    .mode-btn:hover {
+        background: var(--text-dark);
+        color: #fff;
     }
-
-    @media (max-width: 768px) {
-        .container {
-            flex-direction: column;
-        }
-        .left-col {
-            display: none;
-        }
-        .menu-list {
-            max-width: 100%;
-        }
+    .mode-btn-v1 {
+        background: var(--text-dark);
+        color: #fff;
+    }
+    .mode-btn-v1:hover {
+        background: transparent;
+        color: var(--text-dark);
+    }
+    .hidden {
+        display: none !important;
     }
 </style>
 </head>
 <body>
 
-<div class="torn-top"></div>
-
-<div class="container">
-    <div class="left-col">
-        <img src="https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?auto=format&fit=crop&q=80&w=400&h=400" alt="Cocktail 1" class="cocktail-img">
-        <img src="https://images.unsplash.com/photo-1556679343-c7306c1976bc?auto=format&fit=crop&q=80&w=400&h=400" alt="Cocktail 2" class="cocktail-img">
-    </div>
-
-    <div class="right-col">
-        <div class="tag">Limetree</div>
-        <h1 class="title">Weekend<br>Special Menu</h1>
-
-        <div class="menu-list">
-            <!-- Dish 1: Burger -->
-            <div class="menu-item">
-                <div class="action-links">
-                    <a class="view-3d" onclick="openModal('burger')">VIEW IN 3D</a>
-                    <a class="view-fallback" onclick="window.location.href='fallback-ar.html?model=burger'">Click here if model viewer isn't supported</a>
-                </div>
-                <div class="item-header">
-                    <h2 class="item-name">TRUFFLE ROYALE BURGER</h2>
-                    <span class="item-price">899</span>
-                </div>
-                <p class="item-desc">A premium wagyu beef patty with black truffle aioli, aged cheddar, and caramelized onions on a toasted brioche bun.</p>
-            </div>
-
-            <!-- Dish 2: Pasta -->
-            <div class="menu-item">
-                <div class="action-links">
-                    <a class="view-3d" onclick="openModal('pasta')">VIEW IN 3D</a>
-                    <a class="view-fallback" onclick="window.location.href='fallback-ar.html?model=pasta'">Click here if model viewer isn't supported</a>
-                </div>
-                <div class="item-header">
-                    <h2 class="item-name">LOBSTER LINGUINE</h2>
-                    <span class="item-price">1249</span>
-                </div>
-                <p class="item-desc">Handmade linguine tossed in a rich saffron-tomato bisque, topped with butter-poached lobster tail and fresh basil.</p>
-            </div>
-
-            <!-- Dish 3: Cocktail -->
-            <div class="menu-item">
-                <div class="action-links">
-                    <a class="view-3d" onclick="openModal('cocktail')">VIEW IN 3D</a>
-                    <a class="view-fallback" onclick="window.location.href='fallback-ar.html?model=cocktail'">Click here if model viewer isn't supported</a>
-                </div>
-                <div class="item-header">
-                    <h2 class="item-name">SMOKED CITRUS NEGRONI</h2>
-                    <span class="item-price">649</span>
-                </div>
-                <p class="item-desc">A dramatic twist on the classic. Gin, Campari, and sweet vermouth infused with oak smoke and burnt orange peel.</p>
-            </div>
+<!-- Intro Overlay -->
+<div id="introOverlay" class="intro-overlay">
+    <div class="intro-content">
+        <h1 class="intro-title">Limetree</h1>
+        <p class="intro-subtitle">Choose your menu experience</p>
+        <div class="mode-btn-container">
+            <button class="mode-btn mode-btn-v1" onclick="selectMode('v1')">V1: Immersive AR Menu</button>
+            <button class="mode-btn" onclick="selectMode('v2')">V2: Simple 3D Menu</button>
         </div>
     </div>
 </div>
 
-<div class="torn-bottom"></div>
+<div class="vintage-corner top-left"></div>
+<div class="vintage-corner top-right"></div>
+
+<div class="header-container">
+    <span class="flourish left"></span>
+    <h1 class="main-title">MAIN COURSE</h1>
+    <span class="flourish right"></span>
+</div>
+
+<div class="menu-list">
+    <!-- Dish 1: Burger -->
+    <div class="menu-item">
+        <h2 class="item-name">TRUFFLE ROYALE BURGER</h2>
+        <div class="item-price">899</div>
+        <p class="item-desc">A premium wagyu beef patty with black truffle aioli, aged cheddar, and caramelized onions on a toasted brioche bun.</p>
+        <div class="action-links">
+            <a class="view-3d-btn" onclick="openModal('burger')">VIEW IN 3D</a>
+            <a class="view-fallback" onclick="window.location.href='fallback-ar.html?model=burger'">Click here if model viewer isn't supported</a>
+        </div>
+    </div>
+
+    <!-- Dish 2: Pasta -->
+    <div class="menu-item">
+        <h2 class="item-name">LOBSTER LINGUINE</h2>
+        <div class="item-price">1249</div>
+        <p class="item-desc">Handmade linguine tossed in a rich saffron-tomato bisque, topped with butter-poached lobster tail and fresh basil.</p>
+        <div class="action-links">
+            <a class="view-3d-btn" onclick="openModal('pasta')">VIEW IN 3D</a>
+            <a class="view-fallback" onclick="window.location.href='fallback-ar.html?model=pasta'">Click here if model viewer isn't supported</a>
+        </div>
+    </div>
+
+    <!-- Dish 3: Cocktail -->
+    <div class="menu-item">
+        <h2 class="item-name">SMOKED CITRUS NEGRONI</h2>
+        <div class="item-price">649</div>
+        <p class="item-desc">A dramatic twist on the classic. Gin, Campari, and sweet vermouth infused with oak smoke and burnt orange peel.</p>
+        <div class="action-links">
+            <a class="view-3d-btn" onclick="openModal('cocktail')">VIEW IN 3D</a>
+            <a class="view-fallback" onclick="window.location.href='fallback-ar.html?model=cocktail'">Click here if model viewer isn't supported</a>
+        </div>
+    </div>
+</div>
 
 <!-- 3D Viewer Modal -->
 <div class="modal" id="viewerModal">
@@ -452,6 +371,23 @@
 </style>
 
 <script>
+    let appMode = 'v1'; // Default
+
+    function selectMode(mode) {
+        appMode = mode;
+        const overlay = document.getElementById('introOverlay');
+        overlay.style.opacity = '0';
+        setTimeout(() => {
+            overlay.style.display = 'none';
+        }, 400);
+
+        // Hide fallback links if V2
+        if (appMode === 'v2') {
+            const fallbackLinks = document.querySelectorAll('.view-fallback');
+            fallbackLinks.forEach(link => link.classList.add('hidden'));
+        }
+    }
+
     // Initialize Supabase Client
     const SUPABASE_URL = 'https://mbaqukiraerwhpngzwyz.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1iYXF1a2lyYWVyd2hwbmd6d3l6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4MzY1NTksImV4cCI6MjA5NzQxMjU1OX0.N8Hkytw3HpMxRWBU7TPzZe4nR72bv-2qwBg1PfrtfrU';
@@ -518,6 +454,18 @@
         
         // Clear previous source to prevent flash
         viewer.removeAttribute('src');
+        
+        // Configure UI based on mode
+        const nativeBtn = document.getElementById('native-ar-btn');
+        const markerBtn = document.getElementById('marker-ar-btn');
+        
+        if (appMode === 'v2') {
+            nativeBtn.style.display = 'none';
+            markerBtn.style.display = 'none';
+        } else {
+            nativeBtn.style.display = 'block';
+            markerBtn.style.display = 'block';
+        }
         
         modal.style.display = 'flex';
         setTimeout(() => {
