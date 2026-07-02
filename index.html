@@ -471,7 +471,7 @@
 
     <!-- Top Bar -->
     <div class="top-bar">
-        <button class="compare-btn">Compare</button>
+        <button class="compare-btn" onclick="startCompareMode()">Compare</button>
     </div>
 
     <!-- Title -->
@@ -533,7 +533,155 @@
     </div>
 </div>
 
+<!-- Compare Mode View -->
+<div id="compareView" class="compare-view">
+    <!-- Camera feed background -->
+    <video id="cameraBg" autoplay playsinline muted></video>
+    
+    <!-- Top Close Button -->
+    <button class="compare-close-btn" onclick="closeCompareMode()">✕</button>
+
+    <!-- Top Half Container -->
+    <div class="compare-half top-half" id="topHalf">
+        <div class="compare-controls" id="topControls">
+            <button class="compare-add-btn" onclick="openDishSelection('top')">＋ Select Dish</button>
+        </div>
+        <button class="compare-replace-btn hidden" id="topReplaceBtn" onclick="openDishSelection('top')">Replace</button>
+        <model-viewer id="topModelViewer" class="transparent-viewer hidden" camera-controls touch-action="pan-y" auto-rotate disable-zoom shadow-intensity="1"></model-viewer>
+    </div>
+
+    <!-- Divider -->
+    <div class="compare-divider"></div>
+
+    <!-- Bottom Half Container -->
+    <div class="compare-half bottom-half" id="bottomHalf">
+        <div class="compare-controls" id="bottomControls">
+            <button class="compare-add-btn" onclick="openDishSelection('bottom')">＋ Select Dish</button>
+        </div>
+        <button class="compare-replace-btn hidden" id="bottomReplaceBtn" onclick="openDishSelection('bottom')">Replace</button>
+        <model-viewer id="bottomModelViewer" class="transparent-viewer hidden" camera-controls touch-action="pan-y" auto-rotate disable-zoom shadow-intensity="1"></model-viewer>
+    </div>
+
+    <!-- Dish Selection Modal for Compare Mode -->
+    <div id="compareSelectModal" class="compare-select-modal hidden">
+        <div class="compare-select-content">
+            <h3>Select a Dish</h3>
+            <div id="compareSelectList" class="compare-select-list">
+                <!-- JS will populate options -->
+            </div>
+            <button class="close-select-btn" onclick="closeDishSelection()">Cancel</button>
+        </div>
+    </div>
+</div>
+
 <style>
+    /* Compare View Styles */
+    .compare-view {
+        display: none;
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background-color: #000;
+        z-index: 200;
+        flex-direction: column;
+    }
+    .compare-view.active { display: flex; }
+    
+    #cameraBg {
+        position: absolute;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        object-fit: cover;
+        z-index: 1;
+    }
+    
+    .compare-close-btn {
+        position: absolute;
+        top: 20px; left: 20px; /* Switched to left to avoid clashing with replace button */
+        background: rgba(255,255,255,0.8);
+        border: none; border-radius: 50%;
+        width: 40px; height: 40px;
+        font-size: 20px; font-weight: bold;
+        z-index: 10; cursor: pointer;
+    }
+    
+    .compare-half {
+        flex: 1;
+        position: relative;
+        z-index: 5;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    
+    .compare-divider {
+        height: 2px;
+        background: rgba(255,255,255,0.5);
+        z-index: 5;
+    }
+    
+    .transparent-viewer {
+        width: 100%; height: 100%;
+        background-color: transparent !important;
+    }
+    .transparent-viewer.hidden { display: none; }
+    
+    .compare-controls {
+        position: absolute;
+        z-index: 6;
+    }
+    
+    .compare-add-btn {
+        padding: 12px 24px;
+        border-radius: 30px;
+        background: rgba(255,255,255,0.9);
+        color: #000; font-weight: bold;
+        border: none; cursor: pointer;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        font-family: 'Montserrat', sans-serif;
+    }
+    
+    .compare-replace-btn {
+        position: absolute;
+        top: 15px; right: 15px;
+        padding: 8px 16px;
+        border-radius: 20px;
+        background: rgba(255,255,255,0.9);
+        border: none; cursor: pointer;
+        font-weight: bold; font-size: 0.8rem;
+        z-index: 10;
+        font-family: 'Montserrat', sans-serif;
+    }
+    .compare-replace-btn.hidden { display: none; }
+    
+    .compare-select-modal {
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.7);
+        z-index: 20;
+        display: flex; justify-content: center; align-items: center;
+    }
+    .compare-select-modal.hidden { display: none; }
+    
+    .compare-select-content {
+        background: #fff; width: 85%; border-radius: 20px;
+        padding: 20px; max-height: 80%; overflow-y: auto;
+        display: flex; flex-direction: column; gap: 10px;
+        font-family: 'Montserrat', sans-serif;
+    }
+    .compare-select-content h3 { margin-top: 0; text-align: center; }
+    .compare-select-list { display: flex; flex-direction: column; gap: 8px; }
+    
+    .select-item-btn {
+        padding: 15px; border: 1px solid #ddd; border-radius: 10px;
+        background: #f9f9f9; text-align: left; font-weight: bold; cursor: pointer;
+        display: flex; justify-content: space-between;
+    }
+    .close-select-btn {
+        margin-top: 15px; padding: 12px; background: #ddd;
+        border: none; border-radius: 10px; font-weight: bold; cursor: pointer;
+    }
+
     /* New styles for the modal action buttons */
     .modal-actions {
         position: absolute;
@@ -849,6 +997,92 @@
     window.onclick = function(event) {
         if (event.target == modal) {
             closeModal();
+        }
+    }
+
+    // --- COMPARE MODE LOGIC ---
+    let cameraStream = null;
+    let compareTarget = null; // 'top' or 'bottom'
+
+    async function startCompareMode() {
+        const compareView = document.getElementById('compareView');
+        const video = document.getElementById('cameraBg');
+        
+        compareView.classList.add('active');
+        
+        try {
+            // Request rear camera
+            cameraStream = await navigator.mediaDevices.getUserMedia({ 
+                video: { facingMode: 'environment' } 
+            });
+            video.srcObject = cameraStream;
+        } catch (err) {
+            console.error("Camera access denied or unavailable", err);
+        }
+    }
+
+    function closeCompareMode() {
+        document.getElementById('compareView').classList.remove('active');
+        if (cameraStream) {
+            cameraStream.getTracks().forEach(track => track.stop());
+            cameraStream = null;
+        }
+    }
+
+    function openDishSelection(targetHalf) {
+        compareTarget = targetHalf;
+        const modal = document.getElementById('compareSelectModal');
+        const list = document.getElementById('compareSelectList');
+        
+        list.innerHTML = '';
+        
+        // Populate with base dishes
+        baseDishes.forEach(dish => {
+            const btn = document.createElement('button');
+            btn.className = 'select-item-btn';
+            btn.innerHTML = `<span>${dish.name}</span> <span>₹${dish.price}</span>`;
+            btn.onclick = () => selectDishForCompare(dish.id);
+            list.appendChild(btn);
+        });
+        
+        modal.classList.remove('hidden');
+    }
+
+    function closeDishSelection() {
+        document.getElementById('compareSelectModal').classList.add('hidden');
+    }
+
+    async function selectDishForCompare(dishId) {
+        closeDishSelection();
+        
+        if (!compareTarget) return;
+        
+        const viewerId = compareTarget === 'top' ? 'topModelViewer' : 'bottomModelViewer';
+        const controlsId = compareTarget === 'top' ? 'topControls' : 'bottomControls';
+        const replaceBtnId = compareTarget === 'top' ? 'topReplaceBtn' : 'bottomReplaceBtn';
+        
+        const viewer = document.getElementById(viewerId);
+        
+        // Hide "Add" button, show "Replace" button
+        document.getElementById(controlsId).style.display = 'none';
+        document.getElementById(replaceBtnId).classList.remove('hidden');
+        viewer.classList.remove('hidden');
+        
+        try {
+            const { data, error } = await supabaseClient
+                .from('ar_assets')
+                .select('model_url, scale')
+                .eq('item_id', dishId)
+                .single();
+                
+            if (data) {
+                viewer.src = data.model_url;
+                let finalScale = data.scale;
+                if (dishId === 'pasta') finalScale = '0.3 0.3 0.3';
+                viewer.setAttribute('scale', finalScale);
+            }
+        } catch (err) {
+            console.error("Error loading model for compare:", err);
         }
     }
 </script>
